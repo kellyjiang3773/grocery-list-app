@@ -44,8 +44,8 @@ INSTALLED_APPS = [
 
 GRAPHENE = {
     'SCHEMA': 'grocerylistapp.schema.schema',
-    'GRAPHQL_URL': '/graphql',
-    'TESTING_ENDPOINT': '/graphql'
+    # 'GRAPHQL_URL': '/graphql',
+    # 'TESTING_ENDPOINT': '/graphql'
 }
 
 MIDDLEWARE = [
