@@ -9,5 +9,3 @@ RUN npm install
 COPY . /app/frontend/
 
 EXPOSE 3000
-
-#CMD ["npm", "start"]
