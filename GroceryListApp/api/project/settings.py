@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-#fa@eb9hjr9be@nf*xllo(0nz6zves-$aj@#2qy(5%tqv@!adz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0.0.0.0']
 
 
 # Application definition
@@ -44,8 +44,6 @@ INSTALLED_APPS = [
 
 GRAPHENE = {
     'SCHEMA': 'grocerylistapp.schema.schema',
-    # 'GRAPHQL_URL': '/graphql',
-    # 'TESTING_ENDPOINT': '/graphql'
 }
 
 MIDDLEWARE = [
@@ -62,7 +60,8 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
-    "http://127.0.0.1:3000"
+    "http://127.0.0.1:3000",
+    "http://0.0.0.0:3000",
 ]
 
 ROOT_URLCONF = 'project.urls'
