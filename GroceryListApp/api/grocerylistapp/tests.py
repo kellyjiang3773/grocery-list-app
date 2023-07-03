@@ -49,7 +49,7 @@ class GroceryItemQueryTest(GraphQLTestCase):
 
     def test_create_grocery_item_should_not_be_purchased(self):
         # Setup
-        item_name = 'potato'
+        item_name = 'yukon gold potato'
 
         # Execute
         response = self.query(
@@ -75,3 +75,30 @@ class GroceryItemQueryTest(GraphQLTestCase):
         item = GroceryItemModel.objects.get(id=id)
         self.assertEqual(item.item_name, item_name)
         self.assertEqual(item.purchased, False)
+
+
+    def test_delete_grocery_item(self):
+        # Setup
+        item_name = 'russet potato'
+        item = GroceryItemModel.objects.create(item_name=item_name, purchased=False)
+        id = item.id
+
+        # Execute
+        response = self.query(
+            '''
+            mutation deleteGroceryItem($id: ID) {
+                deleteGroceryItem(id: $id) {
+                    ok
+                }
+            }
+            ''',
+            operation_name='deleteGroceryItem',
+            variables={'id': id}
+        )
+
+        # Assert
+        self.assertResponseNoErrors(response)
+        content = json.loads(response.content)
+        self.assertEqual(content["data"]["deleteGroceryItem"]["ok"], True)
+        matching_items = GroceryItemModel.objects.filter(id=id)
+        self.assertEqual(matching_items.count(), 0)
