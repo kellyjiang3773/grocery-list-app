@@ -36,3 +36,16 @@
     transform: rotate(360deg);
   }
 }
+
+.purchased {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.item-row > * {
+  text-align: center;
+}
+
+.item-label {
+  padding: 5px;
+}
