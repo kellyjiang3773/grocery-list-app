@@ -82,7 +82,7 @@ const ItemNameInput = ({isEdit = false, id = null, itemName = null}) => {
           }
           value.value = '';
         }}
-        // style = {{ marginTop: '2em', marginBottom: '2em' }}
+        style = {{ marginTop: '2em', marginBottom: '2em' }}
       >
       {!isEdit && <label>New item: </label>}
       <input
@@ -108,7 +108,6 @@ const ItemDisplay = ({id, itemName, purchased}) => {
       <div
         style={{
           display: 'flex',
-          // justifyContent:'center',
           alignItems:'left',
           flexDirection: 'row',
         }}
@@ -189,6 +188,7 @@ const App = () => (
       flexDirection: 'column',
       margin: '20px'
     }}>
+      <h3>Grocery List</h3>
       <ItemNameInput />
       <ItemList />
     </div>
