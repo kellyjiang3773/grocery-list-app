@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery, useMutation } from '@apollo/client';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete'
+import { Checkbox } from '@mui/material';
+
+import './App.css';
 
 
 const client = new ApolloClient({
@@ -77,7 +82,7 @@ const ItemNameInput = ({isEdit = false, id = null, itemName = null}) => {
           }
           value.value = '';
         }}
-        style = {{ marginTop: '2em', marginBottom: '2em' }}
+        // style = {{ marginTop: '2em', marginBottom: '2em' }}
       >
       {!isEdit && <label>New item: </label>}
       <input
@@ -100,9 +105,23 @@ const ItemDisplay = ({id, itemName, purchased}) => {
     (
       <ItemNameInput isEdit id={id} itemName={itemName} />
     ) : (
-      <div>
+      <div
+        style={{
+          display: 'flex',
+          // justifyContent:'center',
+          alignItems:'left',
+          flexDirection: 'row',
+        }}
+      >
         <button onClick={() => setIsEditing(!isEditing)}>Edit</button>
-        <p>{itemName} - {purchased ? "(purchased)" : "(not purchased yet)"}</p>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
+          <p className={(purchased ? 'purchased' : 'not-purchased') + ' item-label'}>{itemName}</p>
+        </div>
       </div>
     ));
 }
@@ -118,24 +137,41 @@ const ItemList = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
+  if (data.groceryItems.length === 0) return <p>Nothing to buy!</p>
+
   return data.groceryItems.map(( {id, itemName, purchased }) => {
     return (
       <div 
+        className='item-row'
         key={id} 
         style={{
           display: 'flex',
-          justifyContent:'left',
+          justifyContent:'centre',
           alignItems:'left',
           flexDirection: 'row',
+          height: '50px',
+          padding: '5px',
       }}>
-        <button onClick={() => {
-          deleteGroceryItem({ variables: {id: id} });
-          window.location.reload();
-        }}>X</button>
-        <button onClick={() => {
+        <IconButton
+          aria-label="delete"
+          onClick={() => {
+            deleteGroceryItem({ variables: {id: id} });
+            window.location.reload();
+          }}
+        >
+          <DeleteIcon />
+        </IconButton>
+        {/* <button onClick={() => {
           togglePurchased({ variables: {id: id} });
           window.location.reload();
-        }}>V</button>
+        }}>V</button> */}
+        <Checkbox 
+          checked={purchased}
+          onClick={() => {
+            togglePurchased({ variables: {id: id} });
+            window.location.reload();
+          }}
+        />
         <ItemDisplay id={id} itemName={itemName} purchased={purchased} />
       </div>
       )}
@@ -145,12 +181,13 @@ const ItemList = () => {
 const App = () => (
   <ApolloProvider client={client}>
     <div style={{
-      backgroundColor: '#00000008',
+      // backgroundColor: '#00000008',
       display: 'flex',
       justifyContent:'left',
       alignItems:'left',
-      height: '100vh',
+      // height: '100vh',
       flexDirection: 'column',
+      margin: '20px'
     }}>
       <ItemNameInput />
       <ItemList />
