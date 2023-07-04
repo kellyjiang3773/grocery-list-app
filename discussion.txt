@@ -1,0 +1,45 @@
+Discussion
+
+These are some discussion points separated into categories!
+
+-> Improvements/extensions:
+
+How could we extend the app to share with family members and accomodate multiple families (scale users)?
+- Idea: implement a new model GroceryList with an owner field to track ownership of lists, plus a UI to access a list of grocery lists
+        - This would provide functionality for families/individuals to have more than one list at a time
+        - This would also allow us to scale to more users of the app, provided the proper database and authentication management as well
+- Idea: extending the app to work on mobile
+        - This would provide convenience in functionality for all users, since a grocery list would often be used on the go
+- Idea: protect against injection attacks
+        - As the user base grows, the chance of being targeted as an app that allows text input also grows
+
+-> Tests:
+
+The current backend tests aren’t truly unit tests since they go through both the Django model layer and Graphene schema layer, 
+but since there isn’t really logic to test on models alone, I opted to make them small integration tests.
+Possible improvements would include mocking the model/database layer, and making a separate tests folder as tests grow and 
+should be organized into their own files.
+
+-> Optimizations:
+
+Just some small unnecessary things that could be changed to save some time/space.
+
+- Idea: We don’t need to return the whole GroceryItem in some cases
+        - For example, the EditGroceryItem mutation just needs to return the new item name - other data fields are not used
+- Idea: Have a better way of updating the UI after data mutations than depending on the window reloading to change state!
+        - This is currently happening for deleting an item and marking it as purchased or not
+
+-> Cleanup:
+
+These are all the things left on my to-do list that, in an ideal world, would have been gotten to!
+
+- Useability
+        - Not allowing empty strings to be submitted or edited to
+        - Basic checks for exact duplicate items already in the list
+        - A UI design that feels more complete
+            - This includes not having UI elements move around as one is interacting with them :)
+- Code cleanup
+        - As the number of queries and mutations grows, files should be split to smaller, more useable sizes
+            - Ex. app/src/App.js would not contain constants for all the GraphQL strings or multiple React components - these would be 
+            moved to component-specific files and a file for constants
+        - All UI styling could be extracted into CSS files that are applied dynamically (currently there’s a mix of CSS and in-component styling)

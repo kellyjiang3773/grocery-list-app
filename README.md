@@ -10,3 +10,5 @@ To run the app:
 To run tests:
 - `cd` into ```GroceryListApp/api/``` directory
 - Run `python manage.py test`
+
+See discussion points in `discussion.txt`!
