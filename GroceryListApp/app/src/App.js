@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery, useMutation } from '@apollo/client';
 
 
@@ -47,34 +47,64 @@ const TOGGLE_PURCHASED = gql`
   }
 `;
 
-// client.query({ query: QUERY_GROCERY_ITEMS }).then((result) => console.log(result));
+const EDIT_GROCERY_ITEM = gql`
+  mutation editGroceryItem($id: ID, $itemName: String) {
+    editGroceryItem(id: $id, itemName: $itemName) {
+      item {
+        itemName
+      }
+    }
+  }
+`;
 
-const CreateItemInput = () => {
-  let itemName;
+const ItemNameInput = ({isEdit = false, id = null, itemName = null}) => {
+  let value = itemName;
   const [createGroceryItem] = useMutation(CREATE_GROCERY_ITEM);
+  const [editGroceryItem] = useMutation(EDIT_GROCERY_ITEM);
   return (
     <div>
       <form
         onSubmit={e => {
-          createGroceryItem({ variables: {
-            itemName: itemName.value,
-        } });
-        itemName.value = '';
-        window.location.reload();
-      }}
-      style = {{ marginTop: '2em', marginBottom: '2em' }}
-     >
-     <label>New item: </label>
-     <input
-       ref={node => {
-        itemName = node;
-       }}
-       style={{ marginRight: '1em' }}
-     />
-     <button type="submit" style={{ cursor: 'pointer' }}>Add</button>
+          if (isEdit) {
+            editGroceryItem({ variables: {
+              id: id,
+              itemName: value.value,
+            }})
+          } else {
+            createGroceryItem({ variables: {
+              itemName: value.value,
+            } });
+          }
+          value.value = '';
+        }}
+        style = {{ marginTop: '2em', marginBottom: '2em' }}
+      >
+      {!isEdit && <label>New item: </label>}
+      <input
+        defaultValue={value}
+        ref={node => {
+          value = node;
+        }}
+        style={{ marginRight: '1em' }}
+      />
+      <button type="submit" style={{ cursor: 'pointer' }}>{isEdit ? 'Done' : 'Add'}</button>
     </form>
    </div>
   );
+}
+
+const ItemDisplay = ({id, itemName, purchased}) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  return (isEditing ? 
+    (
+      <ItemNameInput isEdit id={id} itemName={itemName} />
+    ) : (
+      <div>
+        <button onClick={() => setIsEditing(!isEditing)}>Edit</button>
+        <p>{itemName} - {purchased ? "(purchased)" : "(not purchased yet)"}</p>
+      </div>
+    ));
 }
 
 const ItemList = () => {
@@ -88,26 +118,28 @@ const ItemList = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  return data.groceryItems.map(( {id, itemName, purchased }) => (
-    <div 
-      key={id} 
-      style={{
-        display: 'flex',
-        justifyContent:'left',
-        alignItems:'left',
-        flexDirection: 'row',
-    }}>
-      <button onClick={() => {
-        deleteGroceryItem({ variables: {id: id} });
-        window.location.reload();
-      }}>X</button>
-      <button onClick={() => {
-        togglePurchased({ variables: {id: id} });
-        window.location.reload();
-      }}>V</button>
-      <p>{itemName} - {purchased ? "(purchased)" : "(not purchased yet)"}</p>
-    </div>
-  ))
+  return data.groceryItems.map(( {id, itemName, purchased }) => {
+    return (
+      <div 
+        key={id} 
+        style={{
+          display: 'flex',
+          justifyContent:'left',
+          alignItems:'left',
+          flexDirection: 'row',
+      }}>
+        <button onClick={() => {
+          deleteGroceryItem({ variables: {id: id} });
+          window.location.reload();
+        }}>X</button>
+        <button onClick={() => {
+          togglePurchased({ variables: {id: id} });
+          window.location.reload();
+        }}>V</button>
+        <ItemDisplay id={id} itemName={itemName} purchased={purchased} />
+      </div>
+      )}
+  );
 }
 
 const App = () => (
@@ -120,7 +152,7 @@ const App = () => (
       height: '100vh',
       flexDirection: 'column',
     }}>
-      <CreateItemInput />
+      <ItemNameInput />
       <ItemList />
     </div>
   </ApolloProvider>

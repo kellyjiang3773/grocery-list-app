@@ -137,3 +137,33 @@ class GroceryItemApiTest(GraphQLTestCase):
         self.assertEqual(content["data"]["toggleGroceryItemPurchased"]["item"]["purchased"], expected_state)
         item_after = GroceryItemModel.objects.get(id=id)
         self.assertEqual(item_after.purchased, expected_state)
+
+
+    def test_edit_grocery_item(self):
+        # Setup
+        original_item_name = 'sweet potato'
+        edited_item_name = 'yam'
+        item = GroceryItemModel.objects.create(item_name=original_item_name, purchased=False)
+        id = item.id
+
+        # Execute
+        response = self.query(
+            '''
+            mutation editGroceryItem($id: ID, $itemName: String) {
+                editGroceryItem(id: $id, itemName: $itemName) {
+                    item {
+                        itemName
+                    }
+                }
+            }
+            ''',
+            operation_name='editGroceryItem',
+            variables={'id': id, 'itemName': edited_item_name}
+        )
+
+        # Assert
+        self.assertResponseNoErrors(response)
+        content = json.loads(response.content)
+        self.assertEqual(content["data"]["editGroceryItem"]["item"]["itemName"], edited_item_name)
+        item_after = GroceryItemModel.objects.get(id=id)
+        self.assertEqual(item_after.item_name, edited_item_name)
