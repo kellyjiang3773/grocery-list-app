@@ -1,6 +1,6 @@
 services:
   backend:
-    command: sh -c "python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     
     build: ./api        
     ports:
@@ -8,6 +8,7 @@ services:
 
     volumes:
       - ./api:/app/backend
+      - /api/db.sqlite3
 
   frontend:
     command: npm start
