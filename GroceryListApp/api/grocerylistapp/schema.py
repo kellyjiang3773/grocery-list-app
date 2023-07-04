@@ -43,11 +43,26 @@ class DeleteGroceryItem(graphene.Mutation):
         item.delete()
 
         return DeleteGroceryItem(ok=True)
+    
+
+class ToggleGroceryItemPurchased(graphene.Mutation):
+    item = graphene.Field(GroceryItemType)
+
+    class Arguments:
+        id = graphene.ID()
+
+    def mutate(self, info, id):
+        item = GroceryItemModel.objects.get(id=id)
+        item.purchased = False if item.purchased == True else True
+        item.save()
+
+        return ToggleGroceryItemPurchased(item=item)
 
 
 class Mutation(graphene.ObjectType):
     create_grocery_item = CreateGroceryItem.Field()
     delete_grocery_item = DeleteGroceryItem.Field()
+    toggle_grocery_item_purchased = ToggleGroceryItemPurchased.Field()
 
 
 schema = graphene.Schema(

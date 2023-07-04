@@ -37,7 +37,17 @@ const DELETE_GROCERY_ITEM = gql`
   }
 `;
 
-client.query({ query: QUERY_GROCERY_ITEMS }).then((result) => console.log(result));
+const TOGGLE_PURCHASED = gql`
+  mutation toggleGroceryItemPurchased($id: ID) {
+    toggleGroceryItemPurchased(id: $id) {
+      item {
+        purchased
+      }
+    }
+  }
+`;
+
+// client.query({ query: QUERY_GROCERY_ITEMS }).then((result) => console.log(result));
 
 const CreateItemInput = () => {
   let itemName;
@@ -69,6 +79,7 @@ const CreateItemInput = () => {
 
 const ItemList = () => {
   const [deleteGroceryItem] = useMutation(DELETE_GROCERY_ITEM);
+  const [togglePurchased] = useMutation(TOGGLE_PURCHASED);
   const { loading, error, data } = useQuery(
     QUERY_GROCERY_ITEMS,
     // { pollInterval: 2000 }
@@ -90,6 +101,10 @@ const ItemList = () => {
         deleteGroceryItem({ variables: {id: id} });
         window.location.reload();
       }}>X</button>
+      <button onClick={() => {
+        togglePurchased({ variables: {id: id} });
+        window.location.reload();
+      }}>V</button>
       <p>{itemName} - {purchased ? "(purchased)" : "(not purchased yet)"}</p>
     </div>
   ))

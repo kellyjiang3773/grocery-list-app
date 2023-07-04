@@ -1,5 +1,6 @@
 import json
 from graphene_django.utils.testing import GraphQLTestCase
+from parameterized import parameterized
 from .models import GroceryItemModel
 
 
@@ -14,7 +15,7 @@ QUERY = """
 """
 
 
-class GroceryItemQueryTest(GraphQLTestCase):
+class GroceryItemApiTest(GraphQLTestCase):
 
     def test_query_grocery_items(self):
         # Setup
@@ -102,3 +103,37 @@ class GroceryItemQueryTest(GraphQLTestCase):
         self.assertEqual(content["data"]["deleteGroceryItem"]["ok"], True)
         matching_items = GroceryItemModel.objects.filter(id=id)
         self.assertEqual(matching_items.count(), 0)
+
+
+    @parameterized.expand([
+        # (name, original_state, expected_state)
+        ("case_true_to_false", True, False),
+        ("case_false_to_true", False, True),
+    ])
+    def test_toggle_grocery_item_purchased(self, name, original_state, expected_state):
+        # Setup
+        item_name = 'red potato'
+        item = GroceryItemModel.objects.create(item_name=item_name, purchased=original_state)
+        id = item.id
+
+        # Execute
+        response = self.query(
+            '''
+            mutation toggleGroceryItemPurchased($id: ID) {
+                toggleGroceryItemPurchased(id: $id) {
+                    item {
+                        purchased
+                    }
+                }
+            }
+            ''',
+            operation_name='toggleGroceryItemPurchased',
+            variables={'id': id}
+        )
+
+        # Assert
+        self.assertResponseNoErrors(response)
+        content = json.loads(response.content)
+        self.assertEqual(content["data"]["toggleGroceryItemPurchased"]["item"]["purchased"], expected_state)
+        item_after = GroceryItemModel.objects.get(id=id)
+        self.assertEqual(item_after.purchased, expected_state)
