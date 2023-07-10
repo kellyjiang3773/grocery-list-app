@@ -1,7 +1,14 @@
 import graphene
 from graphene_django import DjangoObjectType
+from graphql import GraphQLError
 
 from .models import GroceryItemModel
+
+
+# Helpers
+def has_item_name_dup(item_name):
+    matches = GroceryItemModel.objects.filter(item_name=item_name).count()
+    return matches > 0
 
 
 # Queries
@@ -26,8 +33,13 @@ class CreateGroceryItem(graphene.Mutation):
 
     def mutate(self, info, item_name):
 
-        item = GroceryItemModel(item_name=item_name, purchased=False)
-        item.save()
+        if len(item_name) == 0:
+            raise GraphQLError('Item name must be non-empty')
+        elif has_item_name_dup(item_name) == True:
+            raise GraphQLError('Item already exists in the list')
+        else:
+            item = GroceryItemModel(item_name=item_name, purchased=False)
+            item.save()
 
         return CreateGroceryItem(item=item)
 
@@ -69,8 +81,15 @@ class EditGroceryItem(graphene.Mutation):
     def mutate(self, info, id, item_name):
 
         item = GroceryItemModel.objects.get(id=id)
-        item.item_name = item_name
-        item.save()
+        old_item_name = item.item_name
+
+        if old_item_name == item_name:
+            raise GraphQLError('Item name did not change')
+        elif has_item_name_dup(item_name) == True:
+            raise GraphQLError('Item already exists in the list')
+        else:
+            item.item_name = item_name
+            item.save()
 
         return EditGroceryItem(item=item)
 

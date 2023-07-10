@@ -1,14 +1,25 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { SnackbarProvider } from 'notistack';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { ErrorNotifier } from './ErrorNotifier';
+import { MyApolloProvider } from './MyApolloProvider';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  <ErrorNotifier>
+    {(showError) => (
+      <MyApolloProvider showError={showError}>
+        <React.StrictMode>
+          <SnackbarProvider autoHideDuration={5000}>
+            <App />
+          </SnackbarProvider>
+        </React.StrictMode>
+      </MyApolloProvider>
+    )}
+  </ErrorNotifier>
 );
 
 // If you want to start measuring performance in your app, pass a function

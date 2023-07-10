@@ -1,19 +1,14 @@
 import React, { useState } from 'react';
-import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery, useMutation } from '@apollo/client';
+import { gql, useQuery, useMutation } from '@apollo/client';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Checkbox } from '@mui/material';
-
+import { useSnackbar } from 'notistack';
 import './App.css';
 
 
-const client = new ApolloClient({
-  uri: 'http://localhost:8000/graphql',
-  cache: new InMemoryCache()
-});
-
 const QUERY_GROCERY_ITEMS = gql`
-  query {
+  query getGroceryItems {
     groceryItems {
       id
       itemName
@@ -46,6 +41,7 @@ const TOGGLE_PURCHASED = gql`
   mutation toggleGroceryItemPurchased($id: ID) {
     toggleGroceryItemPurchased(id: $id) {
       item {
+        id
         purchased
       }
     }
@@ -56,39 +52,53 @@ const EDIT_GROCERY_ITEM = gql`
   mutation editGroceryItem($id: ID, $itemName: String) {
     editGroceryItem(id: $id, itemName: $itemName) {
       item {
+        id
         itemName
       }
     }
   }
 `;
 
-const ItemNameInput = ({isEdit = false, id = null, itemName = null}) => {
-  let value = itemName;
-  const [createGroceryItem] = useMutation(CREATE_GROCERY_ITEM);
+const ItemNameInput = ({isEdit = false, id = null, itemName = '', callback = null}) => {
+  let inputNode;
+  const [createGroceryItem] = useMutation(CREATE_GROCERY_ITEM, {
+    refetchQueries: [
+      QUERY_GROCERY_ITEMS,
+      'GetGroceryItems'
+    ]
+  });
   const [editGroceryItem] = useMutation(EDIT_GROCERY_ITEM);
+  const { enqueueSnackbar } = useSnackbar();
+
   return (
     <div>
       <form
         onSubmit={e => {
-          if (isEdit) {
+          e.preventDefault();
+
+          if (inputNode.value === '') {
+            enqueueSnackbar('Item name must be non-empty');
+          } else if (isEdit) {
             editGroceryItem({ variables: {
               id: id,
-              itemName: value.value,
-            }})
+              itemName: inputNode.value,
+            }}).then(res => {
+              callback(false);
+            }).catch(err => enqueueSnackbar(err.message));
           } else {
             createGroceryItem({ variables: {
-              itemName: value.value,
-            } });
+              itemName: inputNode.value,
+            }}).catch(err => enqueueSnackbar(err.message));
+            inputNode.value = '';
           }
-          value.value = '';
         }}
         style = {{ marginTop: '2em', marginBottom: '2em' }}
       >
       {!isEdit && <label>New item: </label>}
       <input
-        defaultValue={value}
-        ref={node => {
-          value = node;
+        defaultValue={itemName}
+        ref={element => {
+          inputNode = element;
         }}
         style={{ marginRight: '1em' }}
       />
@@ -103,7 +113,7 @@ const ItemDisplay = ({id, itemName, purchased}) => {
 
   return (isEditing ? 
     (
-      <ItemNameInput isEdit id={id} itemName={itemName} />
+      <ItemNameInput isEdit id={id} itemName={itemName} callback={setIsEditing} />
     ) : (
       <div
         style={{
@@ -126,12 +136,18 @@ const ItemDisplay = ({id, itemName, purchased}) => {
 }
 
 const ItemList = () => {
-  const [deleteGroceryItem] = useMutation(DELETE_GROCERY_ITEM);
+  const [deleteGroceryItem] = useMutation(DELETE_GROCERY_ITEM, {
+    refetchQueries: [
+      QUERY_GROCERY_ITEMS,
+      'GetGroceryItems'
+    ]
+  });
   const [togglePurchased] = useMutation(TOGGLE_PURCHASED);
   const { loading, error, data } = useQuery(
     QUERY_GROCERY_ITEMS,
     // { pollInterval: 2000 }
   );
+  
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -155,20 +171,14 @@ const ItemList = () => {
           aria-label="delete"
           onClick={() => {
             deleteGroceryItem({ variables: {id: id} });
-            window.location.reload();
           }}
         >
           <DeleteIcon />
         </IconButton>
-        {/* <button onClick={() => {
-          togglePurchased({ variables: {id: id} });
-          window.location.reload();
-        }}>V</button> */}
         <Checkbox 
           checked={purchased}
           onClick={() => {
-            togglePurchased({ variables: {id: id} });
-            window.location.reload();
+            togglePurchased({ variables: {id: id} })
           }}
         />
         <ItemDisplay id={id} itemName={itemName} purchased={purchased} />
@@ -178,21 +188,17 @@ const ItemList = () => {
 }
 
 const App = () => (
-  <ApolloProvider client={client}>
-    <div style={{
-      // backgroundColor: '#00000008',
-      display: 'flex',
-      justifyContent:'left',
-      alignItems:'left',
-      // height: '100vh',
-      flexDirection: 'column',
-      margin: '20px'
-    }}>
-      <h3>Grocery List</h3>
-      <ItemNameInput />
-      <ItemList />
-    </div>
-  </ApolloProvider>
+  <div style={{
+    display: 'flex',
+    justifyContent:'left',
+    alignItems:'left',
+    flexDirection: 'column',
+    margin: '20px'
+  }}>
+    <h3>Grocery List</h3>
+    <ItemNameInput />
+    <ItemList />
+  </div>
 );
 
 export default App;
