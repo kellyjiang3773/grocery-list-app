@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client";
 
 
-export const GET_GROCERY_ITEM_LIST = gql`
-  query getGroceryItems {
-    groceryItems {
+export const GET_GROCERY_ITEMS = gql`
+  query getGroceryItems ($listId: ID!) {
+    groceryItems(listId: $listId) {
       id
       itemName
       purchased
@@ -11,9 +11,19 @@ export const GET_GROCERY_ITEM_LIST = gql`
   }
 `;
 
+export const GET_GROCERY_LISTS = gql`
+  query getGroceryLists {
+    groceryLists {
+      id
+      listName
+      owner
+    }
+  }
+`;
+
 export const CREATE_GROCERY_ITEM = gql`
-  mutation createGroceryItem ($itemName: String!) {
-    createGroceryItem(itemName: $itemName) {
+  mutation createGroceryItem ($itemName: String!, $listId: ID!) {
+    createGroceryItem(itemName: $itemName, listId: $listId) {
       item {
         id
         itemName
@@ -24,8 +34,8 @@ export const CREATE_GROCERY_ITEM = gql`
 `;
 
 export const DELETE_GROCERY_ITEM = gql`
-  mutation deleteGroceryItem ($id: ID!) {
-    deleteGroceryItem(id: $id) {
+  mutation deleteGroceryItem ($itemId: ID!, $listId: ID!) {
+    deleteGroceryItem(itemId: $itemId, listId: $listId) {
       ok
     }
   }

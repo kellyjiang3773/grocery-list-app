@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
-import { GET_GROCERY_ITEM_LIST, CREATE_GROCERY_ITEM, EDIT_GROCERY_ITEM } from '../lib/GqlStrings';
+import { GET_GROCERY_ITEMS, CREATE_GROCERY_ITEM, EDIT_GROCERY_ITEM } from '../lib/GqlStrings';
 import { useSnackbar } from 'notistack';
 
 
-export const ItemNameInput = ({isEdit = false, id = null, itemName = '', callback = null}) => {
+export const ItemNameInput = ({isEdit = false, id = null, itemName = '', callback = null, listId = null}) => {
     let inputNode;
     const [createGroceryItem] = useMutation(CREATE_GROCERY_ITEM, {
       refetchQueries: [
-        GET_GROCERY_ITEM_LIST,
+        GET_GROCERY_ITEMS,
         'GetGroceryItems'
       ]
     });
@@ -33,6 +33,7 @@ export const ItemNameInput = ({isEdit = false, id = null, itemName = '', callbac
             } else {
               createGroceryItem({ variables: {
                 itemName: inputNode.value,
+                listId: listId,
               }}).catch(err => enqueueSnackbar(err.message));
               inputNode.value = '';
             }

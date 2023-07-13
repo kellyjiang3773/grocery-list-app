@@ -2,20 +2,25 @@ import React from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { IconButton, Checkbox } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { GET_GROCERY_ITEM_LIST, DELETE_GROCERY_ITEM, TOGGLE_PURCHASED } from '../lib/GqlStrings';
+import { GET_GROCERY_ITEMS, DELETE_GROCERY_ITEM, TOGGLE_PURCHASED } from '../lib/GqlStrings';
 import { ItemDisplay } from './ItemRow';
 
 
-export const ItemList = () => {
+export const ItemList = ({ listId }) => {
     const [deleteGroceryItem] = useMutation(DELETE_GROCERY_ITEM, {
       refetchQueries: [
-        GET_GROCERY_ITEM_LIST,
+        GET_GROCERY_ITEMS,
         'GetGroceryItems'
       ]
     });
     const [togglePurchased] = useMutation(TOGGLE_PURCHASED);
     const { loading, error, data } = useQuery(
-      GET_GROCERY_ITEM_LIST,
+      GET_GROCERY_ITEMS,
+      {
+        variables: {
+          listId: listId,
+        }
+      }
       // { pollInterval: 2000 }
     );
     
@@ -41,7 +46,7 @@ export const ItemList = () => {
           <IconButton
             aria-label="delete"
             onClick={() => {
-              deleteGroceryItem({ variables: {id: id} });
+              deleteGroceryItem({ variables: {itemId: id, listId: listId} });
             }}
           >
             <DeleteIcon />
